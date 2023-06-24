@@ -80,9 +80,10 @@ parentheses).
     `owmApiKey = xx12x345678x90123456xx7x8xx901xx`
     
  4. OPTIONAL: To enable viewing regional weather maps in SIXEL, install 
-    sixelgallery.js. Once it's installed, make sure to set the 
-    pathToSixelViewer in the wxcenter.ini so it correctly points to the path 
-    where it's installed. 
+    sixelgallery.js (https://github.com/codefenix-ConChaos/sixelgallery.js).
+    Once it's installed, make sure to set the pathToSixelViewer in the
+    wxcenter.ini file so it correctly points to the path where it's
+    installed. 
     
     `pathToSixelViewer = ../xtrn/sixelgallery/sixelgallery.js`
 
