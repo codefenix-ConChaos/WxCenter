@@ -1,0 +1,42 @@
+[
+    {
+        "name": "U.S. Current Conditions \u0001k\u0001h(www.wpc.ncep.noaa.gov)",
+        "url": "https://www.wpc.ncep.noaa.gov/noaa/noaad1.gif"
+    },
+    {
+        "name": "U.S. Temperatures \u0001k\u0001h(weather.gov)",
+        "url": "https://graphical.weather.gov/images/conus/MaxT1_conus.png"
+    },
+    {
+        "name": "U.S. Precipitation \u0001k\u0001h(weather.gov)",
+        "url": "https://graphical.weather.gov/images/conus/PoP121_conus.png"
+    },
+    {
+        "name": "U.S. Predominant Weather \u0001k\u0001h(weather.gov)",
+        "url": "https://graphical.weather.gov/images/conus/Wx1_conus.png"
+    },
+    {
+        "name": "U.S. Composite Satellite Image \u0001k\u0001h(www.ssec.wisc.edu)",
+        "url": "https://www.ssec.wisc.edu/data/us_comp/image0.jpg"
+    },
+    {
+        "name": "U.S. Satellite / Radar Composite Image \u0001k\u0001h(www.ssec.wisc.edu)",
+        "url": "https://www.ssec.wisc.edu/localweather/us_radar_sat_wx_comp/latest.gif"
+    },
+    {
+        "name": "World Temperatures & Clouds \u0001k\u0001h(www.ssec.wisc.edu)",
+        "url": "https://www.ssec.wisc.edu/data/comp/latest_cmoll.gif"
+    },
+    {
+        "name": "World Sea Surface Temperature \u0001k\u0001h(www.ssec.wisc.edu)",
+        "url": "https://www.ssec.wisc.edu/data/sst/latest_sst.gif"
+    },
+    {
+        "name": "World Infrared Composite \u0001k\u0001h(www.ssec.wisc.edu)",
+        "url": "https://www.ssec.wisc.edu/data/comp/latest_moll.gif"
+    },
+    {
+        "name": "World Water Vapor Composite \u0001k\u0001h(www.ssec.wisc.edu)",
+        "url": "https://www.ssec.wisc.edu/data/comp/wv/LATEST_WV.gif"
+    }
+]
