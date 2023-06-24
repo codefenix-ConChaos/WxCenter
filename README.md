@@ -1,4 +1,4 @@
-WxCenter (wxcenter.js)
+# WxCenter (wxcenter.js)
 
 by Craig Hendricks  
 codefenix@conchaos.synchro.net  
@@ -13,11 +13,15 @@ This is a weather forecast viewer for Synchronet BBS. It makes use of several
 different online APIs to retrieve weather forecast data for any specified
 location and displays it to the user using an ANSI presentation.
 
+![preview](https://github.com/codefenix-ConChaos/wxcenter.js/assets/12660452/700bf6c3-4db3-4e9c-8436-8ccbebdffbc0)
+
 If there's an active alert in the forecast area, a brief description is 
 shown, with the option to display the details.
 
 It's also capable of displaying regional weather maps in SIXEL, using the
 optional SixelGallery module.
+
+![wxmaps](https://github.com/codefenix-ConChaos/wxcenter.js/assets/12660452/955ede6b-55e3-4c38-a1bb-f4eeed7c891e)
 
 This mod was inspired by the similar syncWXremix mod 
 (https://github.com/KenDB3/syncWXremix), which was rendered inert with the 
@@ -102,13 +106,13 @@ suitable in the terminal.
 Edit the included wxcenter.msg, info.msg, and sixelmaps.msg files in the
 /gfx subdirectory to your liking in PabloDraw.
 
-    wxcenter.msg  - This is the main title screen, the first thing the user
+wxcenter.msg  - This is the main title screen, the first thing the user
                     sees on startup.
 
-    info.msg      - This is shown to the user when the user presses "A" to
+info.msg      - This is shown to the user when the user presses "A" to
                     view information about WxCenter.
 
-    sixelmaps.msg - This is the SIXEL weather map image submenu header.
+sixelmaps.msg - This is the SIXEL weather map image submenu header.
 
 
 ## Future Plans
