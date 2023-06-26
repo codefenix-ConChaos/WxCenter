@@ -45,7 +45,7 @@ function mainMenu() {
     fIni = undefined;
     gOwmApiKey = wxSettings.root.owmApiKey;
     gPathToSixelViewer = wxSettings.root.pathToSixelViewer;
-    gThemePath = backslash(backslash(js.startup_dir) + "gfx/themes") + wxSettings.root.theme;
+    gThemePath = backslash(backslash(backslash(js.startup_dir) + "gfx") + "themes") + wxSettings.root.theme;
     gIpAddy = bbs.atcode("IP"); // user.ip_address;
     var jsonMaps = new File(js.startup_dir + "wxmaps.json");
     if (jsonMaps.open("r")) {
@@ -112,9 +112,6 @@ function mainMenu() {
             case 4:
                 showForecast(getForecastFromWeatherGov(getLocationByName(system.location)));
                 break;
-            case 5:
-                getFromWttrIn();
-                break;
             case mapOption:
                 console.clear();
                 console.home();
@@ -138,12 +135,7 @@ function getLocationByName(locName) {
     var selection;
     var opts = [];
     printf("\x01n Retrieving location data for \x01h%s\x01n...", locName);
-    try {
-        jsonObj = JSON.parse(tryRequest(format(GEO_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES));
-    } catch (err) {
-        log(LOG_WARNING, err);
-        return locObj;
-    }
+    jsonObj = JSON.parse(tryRequest(format(GEO_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES));
     if (jsonObj.length > 1) {
         for (var i = 0; i < jsonObj.length; i++) {
             // "class" changed to "category" ... some time around 5/2-5/3/2023
@@ -481,7 +473,7 @@ function forecastGfx(shortDesc, isDaytime) {
         shortDesc.toLowerCase().indexOf("storm") >= 0) {
         graphic = "storm";
     } else if (shortDesc.toLowerCase().indexOf("mix") >= 0 ||
-        shortDesc.toLowerCase().indexOf("wintery") >= 0 ||
+        shortDesc.toLowerCase().indexOf("wintry") >= 0 ||
         shortDesc.toLowerCase().indexOf("frost") >= 0 ||
         shortDesc.toLowerCase().indexOf("sleet") >= 0) {
         graphic = "mix";
@@ -582,9 +574,9 @@ function moonPhase(phaseNum) {
     } else if (phaseNum > 0 && phaseNum < 0.25) {
         return "Waxing Crescent";
     } else if (phaseNum > 0.25 && phaseNum < 0.5) {
-        return "Waxing Gibious";
+        return "Waxing Gibbous";
     } else if (phaseNum > 0.5 && phaseNum < 0.75) {
-        return "Waining Gibious";
+        return "Waining Gibbous";
     } else if (phaseNum > 0.75 && phaseNum < 1) {
         return "Waining Crescent";
     } else {
