@@ -1,1 +1,4 @@
-This folder is for storing SIXEL converstions.
+This subdirectory is for storing downloaded map images for SIXEL conversions.
+
+Another good source of online weather maps may be http://wxmaps.org.
+
