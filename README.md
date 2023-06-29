@@ -9,6 +9,8 @@ codefenix@conchaos.synchro.net
 
 ## Description:
 
+![main](https://github.com/codefenix-ConChaos/WxCenter/assets/12660452/47bef459-1683-483a-a8c8-c89024c5dec1)
+
 This is a weather forecast viewer for Synchronet BBS. It makes use of several
 different online APIs to retrieve weather forecast data for any specified
 location and displays it to the user using an ANSI presentation.
@@ -23,9 +25,8 @@ optional SixelGallery module.
 
 ![wxmaps](https://github.com/codefenix-ConChaos/wxcenter.js/assets/12660452/955ede6b-55e3-4c38-a1bb-f4eeed7c891e)
 
-This mod was inspired by the similar syncWXremix mod 
-(https://github.com/KenDB3/syncWXremix), which was rendered inert with the 
-phasing out of the free Weather Underground API. 
+This mod was inspired by [syncWXremix](https://github.com/KenDB3/syncWXremix), 
+which was rendered inert with the phasing out of the free Weather Underground API. 
 
 WxCenter aims to be customizable and adaptable to any number of publicly 
 available APIs. 
@@ -33,9 +34,9 @@ available APIs.
 
 ## How it works:
 
-Out of the box, WxCenter retrieves a 7-day forecast from Weather.gov for 
+Out of the box, WxCenter retrieves a 7-day forecast from <Weather.gov> for 
 US locations. For international locations, the One Call API from 
-OpenWeatherMap.org is used instead, which requires either a paid or free
+<OpenWeatherMap.org> is used instead, which requires either a paid or free
 API key.
 
 Both the Weather.gov and OpenWeatherMap.org APIs require a location's latitude
@@ -51,6 +52,8 @@ there is an active weather alert in the area.
 WxCenter will automatically try to get forecast data from OpenWeatherMap.org
 if the call to Weather.gov fails (e.g.: non-US location or is offline).
 
+![onecall](https://github.com/codefenix-ConChaos/WxCenter/assets/12660452/97f9a422-4c82-4c25-84af-20cc696ebc1e)
+
 Imperial units are always used for US locations, and metric units are used for 
 international locations (with the opposite unit type always shown in 
 parentheses).
@@ -58,7 +61,7 @@ parentheses).
 
 ## Instructions:
 
- 1. Extract the contents of wxcenter.zip to /sbbs/xtrn/wxcenter
+ 1. Extract the contents of the ZIP file to /sbbs/xtrn/wxcenter
     
  2. Add to SCFG -> External Programs-> Online Programs (Doors):
  
@@ -72,7 +75,7 @@ parentheses).
     At this point, WxCenter is ready to show US forecast data.
  
  3. To enable international forecasts (i.e. non-US locations), go to 
-    OpenWeatherMap.org and obtain a free (or paid) API key. At the time of
+    <OpenWeatherMap.org> and obtain a free (or paid) API key. At the time of
     this writing, a free key allows 1,000 API calls for 7-day forecasts.
     Once you have your key, edit the wxcenter.ini file and set the owmApiKey
     value accordingly. Example (fake key used):
@@ -80,7 +83,7 @@ parentheses).
     `owmApiKey = xx12x345678x90123456xx7x8xx901xx`
     
  4. OPTIONAL: To enable viewing regional weather maps in SIXEL, install 
-    sixelgallery.js (https://github.com/codefenix-ConChaos/sixelgallery.js).
+    [sixelgallery.js](https://github.com/codefenix-ConChaos/SixelGallery).
     Once it's installed, make sure to set the pathToSixelViewer in the
     wxcenter.ini file so it correctly points to the path where it's
     installed. 
