@@ -226,81 +226,86 @@ function displayForecastPage(temp, tempUnit, location, date, isDayTime, forecast
 }
 
 function showForecast(wxObj) {
-    log(LOG_INFO, "Viewing forecast from " + wxObj[0].source + " for " + wxObj[0].location + ".");
+    //log(LOG_INFO, "Viewing forecast from " + wxObj[0].source + " for " + wxObj[0].location + ".");
     var perSelect = "";
     var period = 0;
     var opts = "";
     var keys = "";
-    while (bbs.online && perSelect !== "Q") {
-        opts = "";
-        keys = "";
-        alertSummary = "";
-        if (wxObj.alerts) {
-            for (var ia = 0; ia < wxObj.alerts.length; ia++) {
-                // We want to display the first alert summary and prompt for detail
-                // if there are alerts in effect for the period shown.
-                if (wxObj[period].dateObj >= wxObj.alerts[ia].effective && wxObj[period].dateObj <= wxObj.alerts[ia].ends) {
-                    alertSummary = format("\x01rALERT: \x01y\x01h%s\r\n", wxObj.alerts[ia].event + (wxObj.alerts[ia].severity != undefined ? " (" + wxObj.alerts[ia].severity + ")" : "")) + format("\x01w\x01h%s\r\n", wxObj.alerts[ia].headline);
-                    opts = "\x01n\x01r[\x01y\x01hA\x01n\x01r]\x01y\x01hlert Details\x01n ";
-                    keys = "A";
-                    break;
+    if (wxObj) {
+        while (bbs.online && perSelect !== "Q") {
+            opts = "";
+            keys = "";
+            alertSummary = "";
+            if (wxObj.alerts) {
+                for (var ia = 0; ia < wxObj.alerts.length; ia++) {
+                    // We want to display the first alert summary and prompt for detail
+                    // if there are alerts in effect for the period shown.
+                    if (wxObj[period].dateObj >= wxObj.alerts[ia].effective && wxObj[period].dateObj <= wxObj.alerts[ia].ends) {
+                        alertSummary = format("\x01rALERT: \x01y\x01h%s\r\n", wxObj.alerts[ia].event + (wxObj.alerts[ia].severity != undefined ? " (" + wxObj.alerts[ia].severity + ")" : "")) + format("\x01w\x01h%s\r\n", wxObj.alerts[ia].headline);
+                        opts = "\x01n\x01r[\x01y\x01hA\x01n\x01r]\x01y\x01hlert Details\x01n ";
+                        keys = "A";
+                        break;
+                    }
                 }
             }
+    
+            displayForecastPage(
+                wxObj[period].temp,
+                wxObj[period].tempUnit,
+                wxObj[period].location,
+                wxObj[period].dateName,
+                wxObj[period].isDayTime,
+                wxObj[period].forecastShort,
+                wxObj[period].forecastDetails,
+                alertSummary,
+                wxObj[period].source,
+                wxObj[period].asOf
+            );
+    
+            if (period < wxObj.length - 1) {
+                opts = opts + "\x01k\x01h[\x01w\x01hN\x01k\x01h]\x01next\x01n ";
+                keys = keys + "N";
+            }
+            if (period > 0) {
+                opts = opts + "\x01k\x01h[\x01w\x01hP\x01k\x01h]\x01nrevious\x01n ";
+                keys = keys + "P";
+            }
+            opts = opts + "\x01k\x01h[\x01w\x01hQ\x01k\x01h]\x01nuit";
+            console.gotoxy(1, BOTTOM);
+            printf("%s\x01w\x01h >\x01n ", opts);
+            perSelect = console.getkeys("Q" + keys, K_UPPER);
+            switch (perSelect) {
+                case "N":
+                    period = period + 1;
+                    break;
+                case "P":
+                    period = period - 1;
+                    break;
+                case "A":
+                    for (var ia = 0; ia < wxObj.alerts.length; ia++) {
+                        printf("\x01q\x01l\x01r. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\r\n");
+                        printf("\x01r\x01hAlert \x01w%d \x01kof \x01w%d\r\n", ia + 1, wxObj.alerts.length);
+                        printf("\x01w\x01h%s\x01n", lfexpand(word_wrap(wxObj.alerts[ia].headline)));
+                        printf("\x01y\x01h%s\r\n", wxObj.alerts[ia].event + (wxObj.alerts[ia].severity != undefined ? " (" + wxObj.alerts[ia].severity + ")" : ""));
+                        printf("\x01n%s\x01n", lfexpand(word_wrap(wxObj.alerts[ia].description)));
+                        printf("\x01r. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\r\n");
+                        console.pause();
+                        printf(SCREEN_RESET);
+                    }
+                    break;
+            }
         }
-
-        displayForecastPage(
-            wxObj[period].temp,
-            wxObj[period].tempUnit,
-            wxObj[period].location,
-            wxObj[period].dateName,
-            wxObj[period].isDayTime,
-            wxObj[period].forecastShort,
-            wxObj[period].forecastDetails,
-            alertSummary,
-            wxObj[period].source,
-            wxObj[period].asOf
-        );
-
-        if (period < wxObj.length - 1) {
-            opts = opts + "\x01k\x01h[\x01w\x01hN\x01k\x01h]\x01next\x01n ";
-            keys = keys + "N";
-        }
-        if (period > 0) {
-            opts = opts + "\x01k\x01h[\x01w\x01hP\x01k\x01h]\x01nrevious\x01n ";
-            keys = keys + "P";
-        }
-        opts = opts + "\x01k\x01h[\x01w\x01hQ\x01k\x01h]\x01nuit";
-        console.gotoxy(1, BOTTOM);
-        printf("%s\x01w\x01h >\x01n ", opts);
-        perSelect = console.getkeys("Q" + keys, K_UPPER);
-        switch (perSelect) {
-            case "N":
-                period = period + 1;
-                break;
-            case "P":
-                period = period - 1;
-                break;
-            case "A":
-                for (var ia = 0; ia < wxObj.alerts.length; ia++) {
-                    printf("\x01q\x01l\x01r. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\r\n");
-                    printf("\x01r\x01hAlert \x01w%d \x01kof \x01w%d\r\n", ia + 1, wxObj.alerts.length);
-                    printf("\x01w\x01h%s\x01n", lfexpand(word_wrap(wxObj.alerts[ia].headline)));
-                    printf("\x01y\x01h%s\r\n", wxObj.alerts[ia].event + (wxObj.alerts[ia].severity != undefined ? " (" + wxObj.alerts[ia].severity + ")" : ""));
-                    printf("\x01n%s\x01n", lfexpand(word_wrap(wxObj.alerts[ia].description)));
-                    printf("\x01r. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\r\n");
-                    console.pause();
-                    printf(SCREEN_RESET);
-                }
-                break;
-        }
+    } else {
+        print("\x01y\x01hNo results returned.\r\n");
+        log(LOG_WARNING, "No results returned. wxObj object is empty!");
     }
 }
 
 function getForecastFromWeatherGov(locObj) {
-    //log(LOG_INFO, "locObj.name: " + locObj.name);
-    //log(LOG_INFO, "locObj.lat: " + locObj.lat);
-    //log(LOG_INFO, "locObj.lon: " + locObj.lon);
-    //log(LOG_INFO, "locObj.units: " + locObj.units);
+    log(LOG_INFO, "locObj.name: " + locObj.name);
+    log(LOG_INFO, "locObj.lat: " + locObj.lat);
+    log(LOG_INFO, "locObj.lon: " + locObj.lon);
+    log(LOG_INFO, "locObj.units: " + locObj.units);
     var wxObj = [];
     var jsonObj;
     var jsonAlert;
@@ -378,10 +383,10 @@ function getForecastFromWeatherGov(locObj) {
 }
 
 function getForecastFromOneCallApi(locObj) {
-    //log(LOG_INFO, "locObj.name: " + locObj.name);
-    //log(LOG_INFO, "locObj.lat: " + locObj.lat);
-    //log(LOG_INFO, "locObj.lon: " + locObj.lon);
-    //log(LOG_INFO, "locObj.units: " + locObj.units);
+    log(LOG_INFO, "locObj.name: " + locObj.name);
+    log(LOG_INFO, "locObj.lat: " + locObj.lat);
+    log(LOG_INFO, "locObj.lon: " + locObj.lon);
+    log(LOG_INFO, "locObj.units: " + locObj.units);
     var wxObj = [];
     var jsonObj;
     var forecastDate;
@@ -539,7 +544,7 @@ function tryRequest(url, max_retries) {
     var retries = 0;
     var response;
     var success = false;
-    //log(LOG_INFO, "url: " + url);
+    log(LOG_INFO, "url: " + url);
     while (bbs.online && !success && retries < max_retries) {
         try {
             response = (new HTTPRequest()).Get(url);
