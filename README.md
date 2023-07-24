@@ -34,9 +34,9 @@ available APIs.
 
 ## How it works:
 
-Out of the box, WxCenter retrieves a 7-day forecast from <Weather.gov> for 
+Out of the box, WxCenter retrieves a 7-day forecast from [Weather.gov](http://Weather.gov) for 
 US locations. For international locations, the One Call API from 
-<OpenWeatherMap.org> is used instead, which requires either a paid or free
+[OpenWeatherMap.org](http://OpenWeatherMap.org) is used instead, which requires either a paid or free
 API key.
 
 Both the Weather.gov and OpenWeatherMap.org APIs require a location's latitude
@@ -75,14 +75,15 @@ parentheses).
     At this point, WxCenter is ready to show US forecast data.
  
  3. To enable international forecasts (i.e. non-US locations), go to 
-    <OpenWeatherMap.org> and obtain a free (or paid) API key. At the time of
-    this writing, a free key allows 1,000 API calls for 7-day forecasts.
+    [OpenWeatherMap.org](http://OpenWeatherMap.org) and obtain a free (or paid) API key. At the time of
+    this writing, a free key allows 1,000 API calls per day for 7-day
+    forecasts.
     Once you have your key, edit the wxcenter.ini file and set the owmApiKey
     value accordingly. Example (fake key used):
 
     `owmApiKey = xx12x345678x90123456xx7x8xx901xx`
     
- 4. OPTIONAL: To enable viewing regional weather maps in SIXEL, install 
+ 5. OPTIONAL: To enable viewing regional weather maps in SIXEL, install 
     [sixelgallery.js](https://github.com/codefenix-ConChaos/SixelGallery).
     Once it's installed, make sure to set the pathToSixelViewer in the
     wxcenter.ini file so it correctly points to the path where it's
