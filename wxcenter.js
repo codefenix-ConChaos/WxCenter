@@ -140,7 +140,7 @@ function getLocationByName(locName) {
         for (var i = 0; i < jsonObj.length; i++) {
             // "class" changed to "category" ... some time around 5/2-5/3/2023
             if (/*jsonObj[i]["category"] === "boundary" ||*/
-                (jsonObj[i]["type"] === "administrative" || jsonObj[i]["type"] === "city" || jsonObj[i]["type"] === "town" || jsonObj[i]["type"] === "village")) {
+                (jsonObj[i]["type"] === "administrative" || jsonObj[i]["type"] === "city" || jsonObj[i]["type"] === "town" || jsonObj[i]["type"] === "village" || jsonObj[i]["type"] === "census")) {
                 opts.push(jsonObj[i]);
             }
         }
