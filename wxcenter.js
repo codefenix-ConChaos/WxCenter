@@ -110,7 +110,19 @@ function mainMenu() {
                 showForecast(getForecastFromWeatherGov(getLocationByIp(gIpAddy)));
                 break;
             case 4:
-                showForecast(getForecastFromWeatherGov(getLocationByName(system.location)));
+                const sysLocObj = getLocationByName(system.location);
+                if (sysLocObj.name !== "") {
+                    showForecast(getForecastFromWeatherGov(sysLocObj));
+                } else {
+                    // This will use the system's IP address as a fallback in
+                    // case the system.location is invalid or doesn't give
+                    // any results.
+                    print("\r\n");
+                    log(LOG_WARNING, "Couldn't get location results for \"" + system.location + "\". Trying for system address: " + system.inet_addr);
+                    var resolved_ip = resolve_ip(system.inet_addr);
+                    log(LOG_WARNING, "resolved_ip: " + resolved_ip);
+                    showForecast(getForecastFromWeatherGov(getLocationByIp(resolved_ip)));
+                }
                 break;
             case mapOption:
                 console.clear();
@@ -248,7 +260,7 @@ function showForecast(wxObj) {
                     }
                 }
             }
-    
+
             displayForecastPage(
                 wxObj[period].temp,
                 wxObj[period].tempUnit,
@@ -261,7 +273,7 @@ function showForecast(wxObj) {
                 wxObj[period].source,
                 wxObj[period].asOf
             );
-    
+
             if (period < wxObj.length - 1) {
                 opts = opts + "\x01k\x01h[\x01w\x01hN\x01k\x01h]\x01next\x01n ";
                 keys = keys + "N";
