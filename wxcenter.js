@@ -3,6 +3,8 @@ load("http.js");
 load("frame.js");
 load("graphic.js");
 
+const VERSION = "0.230928";
+
 const DEGREE_SYMBOL = ascii(248);
 const MAX_RETRIES = 5;
 const RETRY_DELAY = 1000; // milliseconds
@@ -60,7 +62,8 @@ function mainMenu() {
         console.home();
         console.printfile(backslash(js.startup_dir + "gfx") + "wxcenter.msg", P_NOABORT);
         console.center("\x01k\x01h-= \x01b\x01h Welcome to the " + system.name + " Weather Center! \x01k\x01h=-");
-        printf("\r\n");
+        console.center("\x01k\x01hversion " + VERSION);
+        printf("\x01n\r\n");
         printf(MENU_ITEM_FORMAT, 1, "Get forecast by \x01hlatitude & longitude");
         printf(MENU_ITEM_FORMAT, 2, "Get forecast for \x01hcity name");
         printf(MENU_ITEM_FORMAT, 3, "Get forecast for \x01hyour approximate location \x01k\x01h(for IP: \x01n\x01c" + gIpAddy + "\x01k\x01h)");
@@ -143,6 +146,7 @@ function mainMenu() {
 
 function getLocationByName(locName) {
     const locObj = { lat: "", lon: "", name: "", units: "" };
+    const locTypes = new Array("administrative","city","town","village","census");
     var jsonObj;
     var selection;
     var opts = [];
@@ -150,9 +154,7 @@ function getLocationByName(locName) {
     jsonObj = JSON.parse(tryRequest(format(GEO_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES));
     if (jsonObj.length > 1) {
         for (var i = 0; i < jsonObj.length; i++) {
-            // "class" changed to "category" ... some time around 5/2-5/3/2023
-            if (/*jsonObj[i]["category"] === "boundary" ||*/
-                (jsonObj[i]["type"] === "administrative" || jsonObj[i]["type"] === "city" || jsonObj[i]["type"] === "town" || jsonObj[i]["type"] === "village" || jsonObj[i]["type"] === "census")) {
+            if (locTypes.indexOf(jsonObj[i]["type"]) >= 0) {
                 opts.push(jsonObj[i]);
             }
         }
@@ -180,7 +182,7 @@ function getLocationByName(locName) {
         print(DONE);
     }
     if (locObj.name !== "") {
-        var nameParts = locObj.name.split(",");
+        var nameParts = locObj.name.split(","); // let's try to clean up that "display name"
         locObj.name = nameParts[0] + "," + (isNaN(nameParts[nameParts.length - 2]) ? nameParts[nameParts.length - 2] : nameParts[nameParts.length - 3]) + "," + nameParts[nameParts.length - 1];
         locObj.units = locObj.name.indexOf("United States") >= 0 ? "imperial" : "metric";
     }
@@ -314,10 +316,10 @@ function showForecast(wxObj) {
 }
 
 function getForecastFromWeatherGov(locObj) {
-    log(LOG_INFO, "locObj.name: " + locObj.name);
-    log(LOG_INFO, "locObj.lat: " + locObj.lat);
-    log(LOG_INFO, "locObj.lon: " + locObj.lon);
-    log(LOG_INFO, "locObj.units: " + locObj.units);
+    //log(LOG_INFO, "locObj.name: " + locObj.name); // uncomment these lines to log location info
+    //log(LOG_INFO, "locObj.lat: " + locObj.lat);
+    //log(LOG_INFO, "locObj.lon: " + locObj.lon);
+    //log(LOG_INFO, "locObj.units: " + locObj.units);
     var wxObj = [];
     var jsonObj;
     var jsonAlert;
@@ -395,10 +397,10 @@ function getForecastFromWeatherGov(locObj) {
 }
 
 function getForecastFromOneCallApi(locObj) {
-    log(LOG_INFO, "locObj.name: " + locObj.name);
-    log(LOG_INFO, "locObj.lat: " + locObj.lat);
-    log(LOG_INFO, "locObj.lon: " + locObj.lon);
-    log(LOG_INFO, "locObj.units: " + locObj.units);
+    //log(LOG_INFO, "locObj.name: " + locObj.name); // uncomment these lines to log location info
+    //log(LOG_INFO, "locObj.lat: " + locObj.lat);
+    //log(LOG_INFO, "locObj.lon: " + locObj.lon);
+    //log(LOG_INFO, "locObj.units: " + locObj.units);
     var wxObj = [];
     var jsonObj;
     var forecastDate;
@@ -406,7 +408,7 @@ function getForecastFromOneCallApi(locObj) {
     var tzOffset = 0;
     var tempUnit = "";
     if (gOwmApiKey === "" || gOwmApiKey === undefined) {
-        printf("\r\n\x01nCannot retrieve forecast until the sysop obtains an %s API key!\r\n", OWM_SVC_NAME);
+        printf("\r\n\x01nCannot retrieve %s data until the sysop obtains an API key!\r\n", OWM_SVC_NAME);
         console.pause();
         printf(SCREEN_RESET);
         return;
@@ -556,7 +558,7 @@ function tryRequest(url, max_retries) {
     var retries = 0;
     var response;
     var success = false;
-    log(LOG_INFO, "url: " + url);
+    //log(LOG_INFO, "url: " + url); // uncomment this line to log URLs being called
     while (bbs.online && !success && retries < max_retries) {
         try {
             response = (new HTTPRequest()).Get(url);
