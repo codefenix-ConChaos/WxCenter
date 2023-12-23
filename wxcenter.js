@@ -3,7 +3,7 @@ load("http.js");
 load("frame.js");
 load("graphic.js");
 
-const VERSION = "0.230928";
+const VERSION = "0.231223";
 
 const DEGREE_SYMBOL = ascii(248);
 const MAX_RETRIES = 5;
@@ -13,6 +13,8 @@ const MENU_ITEM_FORMAT = " \x01c\x01h%2d\x01k\x01h)\x01n %s\x010\x01n\r\n";
 const MENU_ITEM_FORMAT_S = " \x01c\x01h%2s\x01k\x01h)\x01n %s\x010\x01n\r\n";
 const SCREEN_RESET = "\x01q\x01l\x01n";
 const DONE = "\x01h\x01gdone!\x01n";
+const MONTH = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WEEKDAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
 const GEO_API_URL = "https://geocode.maps.co/search?q=%s"; // Free geocoding API
 // There's also https://geocode.xyz, but the one above seems more accurate.
@@ -151,10 +153,10 @@ function getLocationByName(locName) {
     var selection;
     var opts = [];
     printf("\x01n Retrieving location data for \x01h%s\x01n...", locName);
-    jsonObj = JSON.parse(tryRequest(format(GEO_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES));
+    jsonObj = tryRequest(format(GEO_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES, true);
     if (jsonObj.length > 1) {
         for (var i = 0; i < jsonObj.length; i++) {
-            if (locTypes.indexOf(jsonObj[i]["type"]) >= 0) {
+            if (locTypes.indexOf(jsonObj[i]["type"]) >= 0 && opts.indexOf(jsonObj[i]) < 0) {
                 opts.push(jsonObj[i]);
             }
         }
@@ -191,7 +193,7 @@ function getLocationByName(locName) {
 
 function getLocationByIp(ip_addr) {
     const locObj = { lat: "", lon: "", name: "", units: "" };
-    var jsonObj = JSON.parse(tryRequest(IP_API_URL + ip_addr, MAX_RETRIES));
+    var jsonObj = tryRequest(IP_API_URL + ip_addr, MAX_RETRIES, true);
     if (jsonObj.hasOwnProperty("latitude")) {
         locObj.lat = toFloatStr(jsonObj["latitude"], 4);
         locObj.lon = toFloatStr(jsonObj["longitude"], 4);
@@ -331,7 +333,7 @@ function getForecastFromWeatherGov(locObj) {
     var success = false;
     var lastError = "";
     printf("\x01n Finding forecast office for \x01h%s,%s\x01n...", locObj.lat, locObj.lon);
-    jsonObj = JSON.parse(tryRequest(format(WDG_API_URL, locObj.lat, locObj.lon), MAX_RETRIES));
+    jsonObj = tryRequest(format(WDG_API_URL, locObj.lat, locObj.lon), MAX_RETRIES, true);
     if (jsonObj.hasOwnProperty("properties")) {
         forecastUrl = jsonObj["properties"]["forecast"];
         state = jsonObj["properties"]["relativeLocation"]["properties"]["state"];
@@ -340,7 +342,7 @@ function getForecastFromWeatherGov(locObj) {
         zoneUrl = jsonObj["properties"]["forecastZone"];
         print(DONE);
         printf("\x01n Getting \x01h%s\x01n forecast data...", office);
-        jsonObj = JSON.parse(tryRequest(forecastUrl, MAX_RETRIES));
+        jsonObj = tryRequest(forecastUrl, MAX_RETRIES, true);
         if (jsonObj["properties"] !== undefined) {
             updatedTime = new Date(jsonObj["properties"]["updated"]);
             print(DONE);
@@ -352,7 +354,7 @@ function getForecastFromWeatherGov(locObj) {
         }
     }
     if (success) {
-        jsonAlert = JSON.parse(tryRequest(format(WDG_API_ALERT_URL, state), MAX_RETRIES));
+        jsonAlert = tryRequest(format(WDG_API_ALERT_URL, state), MAX_RETRIES, true);
         //log(LOG_INFO, "There are " + jsonAlert["features"].length + " warning(s) in " + state + ".");
         for (var ia = 0; ia < jsonAlert["features"].length; ia++) {
             var properties = jsonAlert["features"][ia]["properties"];
@@ -376,13 +378,13 @@ function getForecastFromWeatherGov(locObj) {
                 "temp": jsonObj["properties"]["periods"][iw]["temperature"],
                 "tempUnit": jsonObj["properties"]["periods"][iw]["temperatureUnit"],
                 "location": locObj.name,
-                "dateName": jsonObj["properties"]["periods"][iw]["name"] + ", " + (new Date(jsonObj["properties"]["periods"][iw]["startTime"])).toLocaleDateString().split(' ').slice(1).join(' '),
+                "dateName": jsonObj["properties"]["periods"][iw]["name"] + ", " + getDateString(new Date(jsonObj["properties"]["periods"][iw]["startTime"]), "imperial"),
                 "dateObj": new Date(jsonObj["properties"]["periods"][iw]["startTime"]),
                 "isDayTime": jsonObj["properties"]["periods"][iw]["isDaytime"],
                 "forecastShort": jsonObj["properties"]["periods"][iw]["shortForecast"].length > 50 ? jsonObj["properties"]["periods"][iw]["shortForecast"].slice(0, 47) + "..." : jsonObj["properties"]["periods"][iw]["shortForecast"],
                 "forecastDetails": jsonObj["properties"]["periods"][iw]["detailedForecast"],
                 "source": WDG_SVC_NAME + " \x01n(\x01g" + office + "\x01n)",
-                "asOf": updatedTime.toLocaleTimeString() + " " + system.zonestr()
+                "asOf": getShortTime(updatedTime) + " " + system.zonestr()
             });
         }
         return wxObj;
@@ -414,12 +416,12 @@ function getForecastFromOneCallApi(locObj) {
         return;
     }
     printf("\r\n\x01n Contacting %s for \x01h%s,%s\x01n...", OWM_SVC_NAME, locObj.lat, locObj.lon);
-    jsonObj = JSON.parse(tryRequest(format(OWM_API_URL, locObj.lat, locObj.lon, locObj.units, gOwmApiKey), MAX_RETRIES));
+    jsonObj = tryRequest(format(OWM_API_URL, locObj.lat, locObj.lon, locObj.units, gOwmApiKey), MAX_RETRIES, 1);
     if (jsonObj.hasOwnProperty("daily")) {
         tzOffset = Number(jsonObj["timezone_offset"]) + (new Date().getTimezoneOffset() * 60);
         if (locObj.name === "") {
             locObj.name = Math.abs(Number(locObj.lat)) + DEGREE_SYMBOL + (Number(locObj.lat) < 0 ? "S" : "N") + " " + Math.abs(Number(locObj.lon)) + DEGREE_SYMBOL + (Number(locObj.lon) < 0 ? "W" : "E");
-            var jsonLoc = JSON.parse(tryRequest(format(OWM_REV_GEO_API_URL, locObj.lat, locObj.lon, gOwmApiKey), MAX_RETRIES));
+            var jsonLoc = tryRequest(format(OWM_REV_GEO_API_URL, locObj.lat, locObj.lon, gOwmApiKey), MAX_RETRIES, true);
             if (jsonLoc[0]) {
                 if (jsonLoc[0].hasOwnProperty("name")) {
                     locObj.name = jsonLoc[0].name;
@@ -450,7 +452,7 @@ function getForecastFromOneCallApi(locObj) {
                 "temp": jsonObj["daily"][iw]["temp"]["day"],
                 "tempUnit": tempUnit,
                 "location": locObj.name,
-                "dateName": forecastDate.toLocaleDateString(),
+                "dateName": WEEKDAY[forecastDate.getDay()] + ", " + getDateString(forecastDate, locObj.units),
                 "dateObj": forecastDate,
                 "isDayTime": iw === 0 ? ((jsonObj["current"]["dt"] > jsonObj["daily"][iw]["sunset"] || jsonObj["current"]["dt"] < jsonObj["daily"][iw]["sunrise"]) ? false : true) : true,
                 "forecastShort": toTitleCase(jsonObj["daily"][iw]["weather"][0]["description"]),
@@ -467,12 +469,12 @@ function getForecastFromOneCallApi(locObj) {
                     jsonObj["daily"][iw]["snow"] !== undefined ? toFloatStr(jsonObj["daily"][iw]["snow"], 2) : "--",
                     toFloatStr(jsonObj["daily"][iw]["uvi"], 2)) +
                     format("\x01n\x01wSunrise: \x01h%s\x01n\x01w  Sunset: \x01h%s\x01n\x01w\r\n",
-                        new Date((jsonObj["daily"][iw]["sunrise"] + tzOffset) * 1000).toLocaleTimeString(),
-                        new Date((jsonObj["daily"][iw]["sunset"] + tzOffset) * 1000).toLocaleTimeString()) +
+                        getShortTime(new Date((jsonObj["daily"][iw]["sunrise"] + tzOffset) * 1000)),
+                        getShortTime(new Date((jsonObj["daily"][iw]["sunset"] + tzOffset) * 1000))) +
                     format("\x01n\x01wMoon Phase: \x01h%s\x01n\x01w\r\n",
                         moonPhase(jsonObj["daily"][iw]["moon_phase"]))),
                 "source": OWM_SVC_NAME,
-                "asOf": updatedTime.toLocaleTimeString() + " \x01k\x01h(" + jsonObj["timezone"] + ")"
+                "asOf": getShortTime(updatedTime) + " \x01k\x01h(" + jsonObj["timezone"] + ")"
             });
         }
     } else {
@@ -540,7 +542,7 @@ function getWxMap(url) {
     var dl_dir = backslash(backslash(js.startup_dir) + "maps");
     console.clear(false);
     printf("Downloading \x01b\x01h%s \x01w\x01h. . . ", filename);
-    var imgData = tryRequest(url, MAX_RETRIES);
+    var imgData = tryRequest(url, MAX_RETRIES, false);
     if (imgData !== "" && imgData !== undefined) {
         print("done!");
         var tempImg = new File(dl_dir + filename);
@@ -554,7 +556,7 @@ function getWxMap(url) {
     }
 }
 
-function tryRequest(url, max_retries) {
+function tryRequest(url, max_retries, responseIsJson) {
     var retries = 0;
     var response;
     var success = false;
@@ -569,8 +571,26 @@ function tryRequest(url, max_retries) {
             mswait(RETRY_DELAY);
             retries = retries + 1;
         }
+        if (responseIsJson && success) {
+            try {
+                response = JSON.parse(response);
+            } catch (j_err) {
+                log(LOG_WARNING, "Unable to parse JSON from '" + response + "' ... Error: " + j_err + " ... Attempt " + (retries + 1) + " of " + max_retries);
+                printf(".");
+                mswait(RETRY_DELAY);
+                retries = retries + 1;
+            }            
+        }
     }
     return response;
+}
+
+function getDateString(d, dtfmt) {
+    return dtfmt === "imperial" ? format( "%s %02d, %04d", MONTH[d.getMonth()], d.getDate(), d.getFullYear() ) : format( "%02d %s %04d", d.getDate(), MONTH[d.getMonth()], d.getFullYear() );
+}
+
+function getShortTime(d) {
+    return format( "%02d:%02d", d.getHours(), d.getMinutes() );
 }
 
 function convertTemp(fromTemp, fromUnit) {
