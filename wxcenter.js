@@ -3,7 +3,7 @@ load("http.js");
 load("frame.js");
 load("graphic.js");
 
-const VERSION = "0.231223";
+const VERSION = "0.231227";
 
 const DEGREE_SYMBOL = ascii(248);
 const MAX_RETRIES = 5;
@@ -16,8 +16,10 @@ const DONE = "\x01h\x01gdone!\x01n";
 const MONTH = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const WEEKDAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-const GEO_API_URL = "https://geocode.maps.co/search?q=%s"; // Free geocoding API
-// There's also https://geocode.xyz, but the one above seems more accurate.
+const GEO_API_URL = "https://geocode.maps.co/search?q=%s&api_key=%s"; // Free geocoding API ... requires (free) key as of late December, 2023
+
+const GEO_XYZ_API_URL = "https://geocode.xyz/%s?json=1";
+// There's also https://geocode.xyz, but the one above seems more accurate. // https://geocode.xyz/%s?json=1
 
 const IP_API_URL = "https://freeipapi.com/api/json/"; // Free geocoding API that outputs location data for an IP address
 // There's also http://ip-api.com/json/, but the one above seems more accurate.
@@ -146,7 +148,10 @@ function mainMenu() {
     }
 }
 
-function getLocationByName(locName) {
+// old function using https://geocode.maps.co
+// it was nice while it lasted. :(
+// I'll keep the old code commented out for now.
+/*function getLocationByName(locName) {
     const locObj = { lat: "", lon: "", name: "", units: "" };
     const locTypes = new Array("administrative","city","town","village","census");
     var jsonObj;
@@ -164,7 +169,7 @@ function getLocationByName(locName) {
             print("\r\n\r\n\x01w\x01hPlease specify...\x01n");
             for (var i = 0; i < opts.length; i++) {
                 printf(MENU_ITEM_FORMAT, (i + 1),
-                    word_wrap(utf8_decode(opts[i]["display_name"]) + " \x01k\x01h(" + toFloatStr(opts[i]["lat"], 2) + "," + toFloatStr(opts[i]["lon"], 2) + ")", 70, 70, true, true).replace(/\n/g, "\r\n    ").trim());
+                    word_wrap(utf8_decode(opts[i]["display_name"]) + " \x01k\x01h(" + toFloatStr(opts[i]["lat"], 2) + "," + toFloatStr(opts[i]["lon"], 2) + ")", 70, 70, true, true).replace(/\n/g, "\n    ").trim());
             }
             printf("\r\nSelect: \x01h1\x01n-\x01h%d\x01n> ", opts.length);
             selection = console.getnum(opts.length, 1);
@@ -187,6 +192,18 @@ function getLocationByName(locName) {
         var nameParts = locObj.name.split(","); // let's try to clean up that "display name"
         locObj.name = nameParts[0] + "," + (isNaN(nameParts[nameParts.length - 2]) ? nameParts[nameParts.length - 2] : nameParts[nameParts.length - 3]) + "," + nameParts[nameParts.length - 1];
         locObj.units = locObj.name.indexOf("United States") >= 0 ? "imperial" : "metric";
+    }
+    return locObj;
+}*/
+
+function getLocationByName(locName) {
+    const locObj = { lat: "", lon: "", name: "", units: "" };
+    var jsonObj = tryRequest(format(GEO_XYZ_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES, true);
+    if (jsonObj.hasOwnProperty("longt")) {
+        locObj.lat = toFloatStr(jsonObj["latt"], 4);
+        locObj.lon = toFloatStr(jsonObj["longt"], 4);
+        locObj.name = utf8_decode(jsonObj["standard"]["city"]) + ", " + utf8_decode(jsonObj["standard"]["prov"]);
+        locObj.units = jsonObj["standard"]["prov"] === "US" ? "imperial" : "metric";
     }
     return locObj;
 }
@@ -416,7 +433,7 @@ function getForecastFromOneCallApi(locObj) {
         return;
     }
     printf("\r\n\x01n Contacting %s for \x01h%s,%s\x01n...", OWM_SVC_NAME, locObj.lat, locObj.lon);
-    jsonObj = tryRequest(format(OWM_API_URL, locObj.lat, locObj.lon, locObj.units, gOwmApiKey), MAX_RETRIES, 1);
+    jsonObj = tryRequest(format(OWM_API_URL, locObj.lat, locObj.lon, locObj.units, gOwmApiKey), MAX_RETRIES, true);
     if (jsonObj.hasOwnProperty("daily")) {
         tzOffset = Number(jsonObj["timezone_offset"]) + (new Date().getTimezoneOffset() * 60);
         if (locObj.name === "") {
@@ -560,7 +577,7 @@ function tryRequest(url, max_retries, responseIsJson) {
     var retries = 0;
     var response;
     var success = false;
-    //log(LOG_INFO, "url: " + url); // uncomment this line to log URLs being called
+    log(LOG_INFO, "url: " + url); // uncomment this line to log URLs being called
     while (bbs.online && !success && retries < max_retries) {
         try {
             response = (new HTTPRequest()).Get(url);
@@ -575,6 +592,7 @@ function tryRequest(url, max_retries, responseIsJson) {
             try {
                 response = JSON.parse(response);
             } catch (j_err) {
+                success = false;
                 log(LOG_WARNING, "Unable to parse JSON from '" + response + "' ... Error: " + j_err + " ... Attempt " + (retries + 1) + " of " + max_retries);
                 printf(".");
                 mswait(RETRY_DELAY);
@@ -586,7 +604,8 @@ function tryRequest(url, max_retries, responseIsJson) {
 }
 
 function getDateString(d, dtfmt) {
-    return dtfmt === "imperial" ? format( "%s %02d, %04d", MONTH[d.getMonth()], d.getDate(), d.getFullYear() ) : format( "%02d %s %04d", d.getDate(), MONTH[d.getMonth()], d.getFullYear() );
+    return dtfmt === "imperial" ? format( "%s %d, %04d", MONTH[d.getMonth()], d.getDate(), d.getFullYear() ) : /* month-first format for US locations */
+                     /*metric*/   format( "%d %s %04d",  d.getDate(), MONTH[d.getMonth()], d.getFullYear() );  /* day-first format for non-US locations */
 }
 
 function getShortTime(d) {
