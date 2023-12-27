@@ -42,7 +42,7 @@ API key.
 Both the Weather.gov and OpenWeatherMap.org APIs require a location's latitude
 and longitude in order to query forecast data. This info is retrieved by IP 
 address or location name using public geocoding APIs using freeipapi.com and
-geocode.maps.co respectively. The user has the option of letting WxCenter use
+geocode.xyz respectively. The user has the option of letting WxCenter use
 their approximate location using their IP address, or freely entering the name
 of any location (i.e.: city and/or region). The user is presented with a 7-day
 forecast from either source, and can browse through each day of the forecast
@@ -139,11 +139,18 @@ banner, template, etc.
 
 As has happened to the old Weather Underground API, we don't know what the 
 future holds for the APIs from Weather.gov and OpenWeatherMap.org. For this
-reason, WxCenter will one day inevitably meet the same fate as syncWXremix. 
+reason, WxCenter will one day inevitably meet the same fate as syncWXremix.
+
 An experienced Javascript programmer should be able to create a new function 
 modeled after either the existing functions (getForecastFromWeatherGov or
 getForecastFromOneCallApi) to use a different API if the need arose, and the 
 rest of WxCenter would still work as it currently does.
+
+One component of WxCenter, geocode.maps.co, has already been altered to require 
+an API key. I've hastily put in place some changes to get location data from 
+geocode.xyz instead, in order to let option 2 (get forecast for city name)
+keep working. I'll need to reconsider some of my design decisions for
+WxCenter though.
 
 It's worth mentioning that another nice free API at the time of this writing 
 is api.weatherapi.com. This API is nice because it has built-in geocoding, 
