@@ -231,7 +231,6 @@ function getLocationByNameFromGeocodeXyz(locName) {
 function getLocationByIp(ip_addr) {
     const locObj = { lat: "", lon: "", name: "", units: "" };
     var jsonObj = tryRequest(IP_API_URL + ip_addr, MAX_RETRIES, true);
-    var jsonObj = tryRequest(IP_API_URL + ip_addr, MAX_RETRIES, true);
     if (jsonObj.hasOwnProperty("latitude")) {
         locObj.lat = toFloatStr(jsonObj["latitude"], 4);
         locObj.lon = toFloatStr(jsonObj["longitude"], 4);
@@ -374,7 +373,6 @@ function getForecastFromWeatherGov(locObj, useOtherSourceOnFail) {
     var lastError = "";
     printf("\x01n Finding forecast office for \x01h%s,%s\x01n...", locObj.lat, locObj.lon);
     jsonObj = tryRequest(format(WDG_API_URL, locObj.lat, locObj.lon), MAX_RETRIES, true);
-    jsonObj = tryRequest(format(WDG_API_URL, locObj.lat, locObj.lon), MAX_RETRIES, true);
     if (jsonObj.hasOwnProperty("properties")) {
         forecastUrl = jsonObj["properties"]["forecast"];
         state = jsonObj["properties"]["relativeLocation"]["properties"]["state"];
@@ -383,7 +381,6 @@ function getForecastFromWeatherGov(locObj, useOtherSourceOnFail) {
         zoneUrl = jsonObj["properties"]["forecastZone"];
         print(DONE);
         printf("\x01n Getting \x01h%s\x01n forecast data...", office);
-        jsonObj = tryRequest(forecastUrl, MAX_RETRIES, true);
         jsonObj = tryRequest(forecastUrl, MAX_RETRIES, true);
         if (jsonObj["properties"] !== undefined) {
             updatedTime = new Date(jsonObj["properties"]["updated"]);
@@ -423,13 +420,11 @@ function getForecastFromWeatherGov(locObj, useOtherSourceOnFail) {
                 "tempUnit": jsonObj["properties"]["periods"][iw]["temperatureUnit"],
                 "location": locObj.name,
                 "dateName": jsonObj["properties"]["periods"][iw]["name"] + ", " + getDateString(new Date(jsonObj["properties"]["periods"][iw]["startTime"]), "imperial"),
-                "dateName": jsonObj["properties"]["periods"][iw]["name"] + ", " + getDateString(new Date(jsonObj["properties"]["periods"][iw]["startTime"]), "imperial"),
                 "dateObj": new Date(jsonObj["properties"]["periods"][iw]["startTime"]),
                 "isDayTime": jsonObj["properties"]["periods"][iw]["isDaytime"],
                 "forecastShort": jsonObj["properties"]["periods"][iw]["shortForecast"].length > 50 ? jsonObj["properties"]["periods"][iw]["shortForecast"].slice(0, 47) + "..." : jsonObj["properties"]["periods"][iw]["shortForecast"],
                 "forecastDetails": jsonObj["properties"]["periods"][iw]["detailedForecast"],
                 "source": WDG_SVC_NAME + " \x01n(\x01g" + office + "\x01n)",
-                "asOf": getShortTime(updatedTime) + " " + system.zonestr()
                 "asOf": getShortTime(updatedTime) + " " + system.zonestr()
             });
         }
@@ -485,7 +480,6 @@ function getForecastFromOneCallApi(locObj, useOtherSourceOnFail) {
     }
     printf("\r\n\x01n Contacting %s for \x01h%s,%s\x01n...", OWM_SVC_NAME, locObj.lat, locObj.lon);
     jsonObj = tryRequest(format(OWM_API_URL, locObj.lat, locObj.lon, locObj.units, gOwmApiKey), MAX_RETRIES, true);
-    jsonObj = tryRequest(format(OWM_API_URL, locObj.lat, locObj.lon, locObj.units, gOwmApiKey), MAX_RETRIES, true);
     if (jsonObj.hasOwnProperty("daily")) {
         tzOffset = Number(jsonObj["timezone_offset"]) + (new Date().getTimezoneOffset() * 60);
         updatedTime = new Date((jsonObj["current"]["dt"] + tzOffset) * 1000);
@@ -513,7 +507,6 @@ function getForecastFromOneCallApi(locObj, useOtherSourceOnFail) {
                 "tempUnit": tempUnit,
                 "location": locObj.name,
                 "dateName": WEEKDAY[forecastDate.getDay()] + ", " + getDateString(forecastDate, locObj.units),
-                "dateName": WEEKDAY[forecastDate.getDay()] + ", " + getDateString(forecastDate, locObj.units),
                 "dateObj": forecastDate,
                 "isDayTime": iw === 0 ? ((jsonObj["current"]["dt"] > jsonObj["daily"][iw]["sunset"] || jsonObj["current"]["dt"] < jsonObj["daily"][iw]["sunrise"]) ? false : true) : true,
                 "forecastShort": toTitleCase(jsonObj["daily"][iw]["weather"][0]["description"]),
@@ -532,12 +525,9 @@ function getForecastFromOneCallApi(locObj, useOtherSourceOnFail) {
                     format("\x01n\x01wSunrise: \x01h%s\x01n\x01w  Sunset: \x01h%s\x01n\x01w\r\n",
                         getShortTime(new Date((jsonObj["daily"][iw]["sunrise"] + tzOffset) * 1000)),
                         getShortTime(new Date((jsonObj["daily"][iw]["sunset"] + tzOffset) * 1000))) +
-                        getShortTime(new Date((jsonObj["daily"][iw]["sunrise"] + tzOffset) * 1000)),
-                        getShortTime(new Date((jsonObj["daily"][iw]["sunset"] + tzOffset) * 1000))) +
                     format("\x01n\x01wMoon Phase: \x01h%s\x01n\x01w\r\n",
                         moonPhase(jsonObj["daily"][iw]["moon_phase"]))),
                 "source": OWM_SVC_NAME,
-                "asOf": getShortTime(updatedTime) + " \x01k\x01h(" + jsonObj["timezone"] + ")"
                 "asOf": getShortTime(updatedTime) + " \x01k\x01h(" + jsonObj["timezone"] + ")"
             });
         }
@@ -611,7 +601,6 @@ function getWxMap(url) {
     console.clear(false);
     printf("Downloading \x01b\x01h%s \x01w\x01h. . . ", filename);
     var imgData = tryRequest(url, MAX_RETRIES, false);
-    var imgData = tryRequest(url, MAX_RETRIES, false);
     if (imgData !== "" && imgData !== undefined) {
         print("done!");
         var tempImg = new File(dl_dir + filename);
@@ -625,7 +614,6 @@ function getWxMap(url) {
     }
 }
 
-function tryRequest(url, max_retries, responseIsJson) {
 function tryRequest(url, max_retries, responseIsJson) {
     var retries = 0;
     var response;
@@ -656,15 +644,6 @@ function tryRequest(url, max_retries, responseIsJson) {
         }
     }
     return response;
-}
-
-function getDateString(d, dtfmt) {
-    return dtfmt === "imperial" ? format( "%s %d, %04d", MONTH[d.getMonth()], d.getDate(), d.getFullYear() ) : /* month-first format for US locations */
-                     /*metric*/   format( "%d %s %04d",  d.getDate(), MONTH[d.getMonth()], d.getFullYear() );  /* day-first format for non-US locations */
-}
-
-function getShortTime(d) {
-    return format( "%02d:%02d", d.getHours(), d.getMinutes() );
 }
 
 function getDateString(d, dtfmt) {
