@@ -1,9 +1,9 @@
 # WxCenter (wxcenter.js)
 
 by Craig Hendricks
-codefenix@conchaos.synchro.net
- telnet://conchaos.synchro.net
-  https://conchaos.synchro.net
+codefenix@conchaos.synchro.net  
+ telnet://conchaos.synchro.net  
+  https://conchaos.synchro.net  
 
 
 
@@ -40,18 +40,18 @@ available APIs.
 Out of the box, WxCenter retrieves a 7-day forecast from
 [Weather.gov](http://Weather.gov) for US locations. For international 
 locations, the One Call API from [OpenWeatherMap.org](http://OpenWeatherMap.org) 
-is used instead, which requires either a free or paid API key.
+is used instead, which requires either a free or paid API key. 
 
 Both the Weather.gov and OpenWeatherMap.org APIs require a location's latitude
 and longitude in order to query forecast data. This info is retrieved by IP
 address or location name using public geocoding APIs using freeipapi.com using
-the user's IP address, or geocode.xyz or OpenWeatherMap.og by location name
-(the latter if an API key has been obtained). This gives the user the option of
-letting WxCenter use their approximate location using their IP address, or
-freely entering the name of any location (i.e.: city and/or region). The user
-is presented with a daily forecast from either source, and can browse through
-each day of the forecast using the [N]ext and [P]revious options. The [A]lert
-Details option appears if there is an active weather alert in the area.
+the user's IP address, or nominatim.openstreetmap.org or OpenWeatherMap.og by 
+location name (the latter if an API key has been obtained). This gives the user 
+the option of letting WxCenter use their approximate location using their IP 
+address, or freely entering the name of any location (i.e.: city and/or region). 
+The user is presented with a daily forecast from either source, and can browse 
+through each day of the forecast using the [N]ext and [P]revious options. The 
+[A]lert Details option appears if there is an active weather alert in the area.
 
 By default, WxCenter will automatically try to get forecast data from
 OpenWeatherMap.org if the call to Weather.gov fails (e.g.: non-US location or
@@ -79,9 +79,9 @@ parentheses).
     Command Line          ?wxcenter.js
     ```
 
-    At this point, WxCenter is ready to show forecast data for US locations.
+    At this point, WxCenter is ready to show forecast data for US locations.    
 
- 3. To enable international forecasts (i.e. non-US locations), go to
+ 4. To enable international forecasts (i.e. non-US locations), go to
     [OpenWeatherMap.org](http://OpenWeatherMap.org) and obtain a free (or paid)
     API key. At the time of this writing, a free key allows 1,000 API calls per
     day for 8-day forecasts.
@@ -93,7 +93,7 @@ parentheses).
 
     Since the API key also allows access to OpenWeatherMap's geocoding APIs,
     this will let WxCenter get its location data from there instead of from
-    geocode.xyz.
+    nominatim.openstreetmap.org.
 
  5. OPTIONAL: To enable viewing regional weather maps in SIXEL, install
     [sixelgallery.js](https://github.com/codefenix-ConChaos/SixelGallery).
@@ -184,8 +184,8 @@ reason, WxCenter will one day inevitably meet the same fate as syncWXremix.
 
 One API formerly used by WxCenter, geocode.maps.co, was altered to require an 
 API key. When that happened, I made modifications to get location data from 
-geocode.xyz instead, in order to let option 2 (get forecast for city name)
-keep working.
+nominatim.openstreetmap.org instead, in order to let option 2 (get forecast 
+for city name) keep working without requiring an API key.
 
 In similar scenarios in the future, an experienced Javascript programmer should 
 be able to create a new function modeled after either the existing functions 
