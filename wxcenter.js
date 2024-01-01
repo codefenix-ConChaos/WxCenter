@@ -3,7 +3,7 @@ load("http.js");
 load("frame.js");
 load("graphic.js");
 
-const VERSION = "0.231228";
+const VERSION = "0.240101";
 
 const DEGREE_SYMBOL = ascii(248);
 const MAX_RETRIES = 5;
@@ -16,8 +16,8 @@ const DONE = "\x01h\x01gdone!\x01n";
 const MONTH = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const WEEKDAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-const GEO_XYZ_API_URL = "https://geocode.xyz/?locate=%s&json=1";
-// This is the FREE geocoding API as recommended by weather.gov, for better or worse.
+const GEO_OST_API_URL = "https://nominatim.openstreetmap.org/search?q=%s&format=json&addressdetails=1&limit=5";
+// This is a FREE geocoding API, seems reliable
 
 const IP_API_URL = "https://freeipapi.com/api/json/"; // Free geocoding API that outputs location data for an IP address
 // There's also http://ip-api.com/json/, but freeipapi.com seems more accurate.
@@ -121,12 +121,14 @@ function mainMenu() {
                 printf("\r\n\x01n  Enter city name" + (gOwmApiKey !== "" && gOwmApiKey !== undefined ? " / zip code":"") + " (e.g.: %s): \x01h", systemLocation);
                 prompt = console.getstr(60).trim().toUpperCase();
                 if (prompt !== "") {
-                    var locObj2;
+                    var locObj2;                    
                     if (gOwmApiKey !== "" && gOwmApiKey !== undefined) { // Try ZIP code first
                         locObj2 = getLocationByZipCode(prompt);
-                    }
-                    if (locObj2.name === "" || locObj2.name === undefined) { // Try location name if ZIP code attempt fails
-                        locObj2 = gOwmApiKey !== "" && gOwmApiKey !== undefined ? getLocationByNameFromOwm(prompt) : getLocationByNameFromGeocodeXyz(prompt);
+                        if (locObj2.name === "" || locObj2.name === undefined) { // Try location name if ZIP code attempt fails
+                            locObj2 = getLocationByNameFromOwm(prompt);
+                        }
+                    } else {
+                        locObj2 = getLocationByNameFromOst(prompt);
                     }
                     if (locObj2.name === "") {
                         printf("\r\n\x01y\x01h   Could not validate \"%s\".", prompt);
@@ -140,7 +142,7 @@ function mainMenu() {
                 showForecast(getForecast(getLocationByIp(gIpAddy), preferredSource, useOtherSourceOnFail));
                 break;
             case 4:
-                const sysLocObj = gOwmApiKey !== "" && gOwmApiKey !== undefined ? getLocationByNameFromOwm(systemLocation) : getLocationByNameFromGeocodeXyz(systemLocation);
+                const sysLocObj = gOwmApiKey !== "" && gOwmApiKey !== undefined ? getLocationByNameFromOwm(systemLocation) : getLocationByNameFromOst(systemLocation);
                 if (sysLocObj.name !== "") {
                     showForecast(getForecast(sysLocObj, preferredSource, useOtherSourceOnFail));
                 } else {
@@ -189,11 +191,13 @@ function getLocationByNameFromOwm(locName) {
                 word_wrap(utf8_decode(jsonObj[i]["name"]) + ", " + utf8_decode(jsonObj[i]["state"]) + " " + utf8_decode(jsonObj[i]["country"]) + " \x01k\x01h(" + toFloatStr(jsonObj[i]["lat"], 2) + "," + toFloatStr(jsonObj[i]["lon"], 2) + ")", 70, 70, true, true).replace(/\n/g, "\n    ").trim());
         }
         printf("\r\nSelect: \x01h1\x01n-\x01h%d\x01n> ", Object.keys(jsonObj).length);
-        selection = console.getnum(jsonObj.length, 1);
-        locObj.lat = toFloatStr(jsonObj[selection - 1]["lat"], 4);
-        locObj.lon = toFloatStr(jsonObj[selection - 1]["lon"], 4);
-        locObj.name = utf8_decode(jsonObj[selection - 1]["name"]) + ", " + utf8_decode(jsonObj[selection - 1]["state"]) + " " + utf8_decode(jsonObj[selection - 1]["country"]);
-        locObj.units = jsonObj[selection - 1]["country"] === "US" ? "imperial" : "metric";
+        selection = console.getnum(jsonObj.length, 1);        
+        if (!isNaN(selection) && selection !== -1) {
+            locObj.lat = toFloatStr(jsonObj[selection - 1]["lat"], 4);
+            locObj.lon = toFloatStr(jsonObj[selection - 1]["lon"], 4);
+            locObj.name = utf8_decode(jsonObj[selection - 1]["name"]) + ", " + utf8_decode(jsonObj[selection - 1]["state"]) + " " + utf8_decode(jsonObj[selection - 1]["country"]);
+            locObj.units = jsonObj[selection - 1]["country"] === "US" ? "imperial" : "metric";
+        }
     } else if (jsonObj.length === 1) {
         locObj.lat = toFloatStr(jsonObj[0]["lat"], 4);
         locObj.lon = toFloatStr(jsonObj[0]["lon"], 4);
@@ -216,14 +220,33 @@ function getLocationByZipCode(zipCode) {
     return locObj;
 }
 
-function getLocationByNameFromGeocodeXyz(locName) {
+function getLocationByNameFromOst(locName) {
     const locObj = { lat: "", lon: "", name: "", units: "" };
-    var jsonObj = tryRequest(format(GEO_XYZ_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES, true);
-    if (jsonObj.hasOwnProperty("longt")) {
-        locObj.lat = toFloatStr(jsonObj["latt"], 4);
-        locObj.lon = toFloatStr(jsonObj["longt"], 4);
-        locObj.name = utf8_decode(jsonObj["standard"]["city"]) + ", " + utf8_decode(jsonObj["standard"]["prov"]);
-        locObj.units = jsonObj["standard"]["prov"] === "US" ? "imperial" : "metric";
+    var jsonObj;
+    var selection;
+    var opts = [];
+    printf("\x01n Retrieving location data for \x01h%s\x01n...", locName);
+    jsonObj = tryRequest(format(GEO_OST_API_URL, locName.replace(/ /g, "+")), MAX_RETRIES, true);
+    if (Object.keys(jsonObj).length > 1) {
+        print("\r\n\r\n\x01w\x01hPlease specify...\x01n");
+        for (var i = 0; i < Object.keys(jsonObj).length; i++) {
+            printf(MENU_ITEM_FORMAT, (i + 1),
+                word_wrap(utf8_decode(jsonObj[i]["name"]) + ", " + utf8_decode(jsonObj[i]["address"]["state"]) + " " + utf8_decode(jsonObj[i]["address"]["country"]) + " \x01k\x01h(" + toFloatStr(jsonObj[i]["lat"], 2) + "," + toFloatStr(jsonObj[i]["lon"], 2) + ")", 70, 70, true, true).replace(/\n/g, "\n    ").trim());
+        }
+        printf("\r\nSelect: \x01h1\x01n-\x01h%d\x01n> ", Object.keys(jsonObj).length);
+        selection = console.getnum(jsonObj.length, 1);        
+        if (!isNaN(selection) && selection !== -1) {
+            locObj.lat = toFloatStr(jsonObj[selection - 1]["lat"], 4);
+            locObj.lon = toFloatStr(jsonObj[selection - 1]["lon"], 4);
+            locObj.name = utf8_decode(jsonObj[selection - 1]["address"]["name"]) + ", " + utf8_decode(jsonObj[selection - 1]["address"]["state"]) + " " + utf8_decode(jsonObj[selection - 1]["address"]["country_code"]);
+            locObj.units = jsonObj[selection - 1]["address"]["country_code"] === "us" ? "imperial" : "metric";
+        }
+    } else if (jsonObj.length === 1) {
+        locObj.lat = toFloatStr(jsonObj[0]["lat"], 4);
+        locObj.lon = toFloatStr(jsonObj[0]["lon"], 4);
+        locObj.name = utf8_decode(jsonObj[0]["address"]["name"]) + ", " + utf8_decode(jsonObj[0]["address"]["state"]) + " " + utf8_decode(jsonObj[0]["address"]["country_code"]);
+        locObj.units = jsonObj[0]["address"]["country_code"] === "us" ? "imperial" : "metric";
+        print(DONE);
     }
     return locObj;
 }
