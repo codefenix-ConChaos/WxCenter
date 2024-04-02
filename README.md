@@ -1,3 +1,7 @@
+> ⚠️ **_NOTE:_**  This project is no longer being maintained. Please feel free to fork it, clone it, make your own version of it, or whatever you wish.
+
+
+
 # WxCenter (wxcenter.js)
 
 by Craig Hendricks
